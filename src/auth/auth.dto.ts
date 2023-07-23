@@ -1,7 +1,6 @@
 import {
   Equals,
   IsAlphanumeric,
-  IsBoolean,
   IsEmail,
   IsNotEmpty,
   IsStrongPassword,

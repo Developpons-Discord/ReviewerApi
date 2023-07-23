@@ -10,7 +10,6 @@ import {
 import { AuthService } from './auth.service';
 import { Public } from './public.decorator';
 import { RegisterDto } from './auth.dto';
-import { User } from '@prisma/client';
 import { UserWithRoles } from '../users/user.model';
 
 @Controller('auth')
