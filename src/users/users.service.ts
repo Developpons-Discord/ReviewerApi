@@ -1,7 +1,7 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { PrismaService } from '../prisma.service';
-import { UserWithRoles } from './user.model';
+import { UserWithConfirmation, UserWithRoles } from './user.model';
 
 @Injectable()
 export class UsersService {
@@ -19,12 +19,15 @@ export class UsersService {
 
   async findOne({
     where,
+    include,
   }: {
     where: Prisma.UserWhereUniqueInput;
-  }): Promise<UserWithRoles | null> {
+    include?: Prisma.UserInclude;
+  }) {
     return this.prisma.user.findUnique({
       where,
       include: {
+        ...include,
         roles: true,
       },
     });
@@ -36,12 +39,13 @@ export class UsersService {
 
   async create(
     data: Prisma.UserCreateInput,
-  ): Promise<Omit<UserWithRoles, 'password'>> {
+  ): Promise<Omit<UserWithRoles & UserWithConfirmation, 'password'>> {
     try {
       const { password, ...user } = await this.prisma.user.create({
         data,
         include: {
           roles: true,
+          emailConfirmation: true,
         },
       });
       return user;
@@ -62,6 +66,14 @@ export class UsersService {
     return this.prisma.user.update({
       data,
       where,
+    });
+  }
+
+  async delete(userId: number) {
+    return this.prisma.user.delete({
+      where: {
+        id: userId,
+      },
     });
   }
 }

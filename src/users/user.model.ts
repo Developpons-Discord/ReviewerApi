@@ -7,3 +7,13 @@ const userWithRoles = Prisma.validator<Prisma.UserArgs>()({
 });
 
 export type UserWithRoles = Prisma.UserGetPayload<typeof userWithRoles>;
+
+const userWithConfirmaiton = Prisma.validator<Prisma.UserArgs>()({
+  include: {
+    emailConfirmation: true,
+  },
+});
+
+export type UserWithConfirmation = Prisma.UserGetPayload<
+  typeof userWithConfirmaiton
+>;
