@@ -1,35 +1,67 @@
-import { Injectable } from '@nestjs/common';
-import { Role } from '../roles/role.enum';
-
-export interface User {
-  userId: number;
-  username: string;
-  password: string;
-  roles: Role[];
-}
+import { ConflictException, Injectable } from '@nestjs/common';
+import { Prisma, User } from '@prisma/client';
+import { PrismaService } from '../prisma.service';
+import { UserWithRoles } from './user.model';
 
 @Injectable()
 export class UsersService {
-  private readonly users: User[] = [
-    {
-      userId: 1,
-      username: 'redstom',
-      password: 'test',
-      roles: [Role.Admin, Role.User],
-    },
-    {
-      userId: 2,
-      username: 'john',
-      password: 'guess',
-      roles: [Role.User],
-    },
-  ];
+  constructor(private prisma: PrismaService) {}
 
-  async findOne(username: string): Promise<User | undefined> {
-    return this.users.find((user) => user.username === username);
+  async findWhere({
+    where,
+  }: {
+    where: Prisma.UserWhereInput;
+  }): Promise<User[]> {
+    return this.prisma.user.findMany({
+      where,
+    });
+  }
+
+  async findOne({
+    where,
+  }: {
+    where: Prisma.UserWhereUniqueInput;
+  }): Promise<UserWithRoles | null> {
+    return this.prisma.user.findUnique({
+      where,
+      include: {
+        roles: true,
+      },
+    });
   }
 
   async findAll(): Promise<User[]> {
-    return [...this.users];
+    return this.prisma.user.findMany();
+  }
+
+  async create(
+    data: Prisma.UserCreateInput,
+  ): Promise<Omit<UserWithRoles, 'password'>> {
+    try {
+      const { password, ...user } = await this.prisma.user.create({
+        data,
+        include: {
+          roles: true,
+        },
+      });
+      return user;
+    } catch {
+      throw new ConflictException(
+        "Un utilisateur avec ce nom d'utilisateur ou cet email existe déjà.",
+      );
+    }
+  }
+
+  async update({
+    where,
+    data,
+  }: {
+    where: Prisma.UserWhereUniqueInput;
+    data: Prisma.UserUpdateInput;
+  }): Promise<User> {
+    return this.prisma.user.update({
+      data,
+      where,
+    });
   }
 }
