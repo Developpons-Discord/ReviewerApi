@@ -8,10 +8,12 @@ import { AuthGuard } from './auth.guard';
 import { AuthConstants } from '../appconfig/auth.constants';
 import { ConfigModule } from '@nestjs/config';
 import { AppconfigModule } from '../appconfig/appconfig.module';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
   imports: [
     UsersModule,
+    MailModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -19,14 +21,11 @@ import { AppconfigModule } from '../appconfig/appconfig.module';
     JwtModule.registerAsync({
       imports: [AppconfigModule],
       inject: [AuthConstants],
-      useFactory: async (authConstants: AuthConstants) => {
-        console.log(authConstants?.jwtSecret);
-        return {
-          global: true,
-          secret: authConstants?.jwtSecret,
-          signOptions: { expiresIn: '60s' },
-        };
-      },
+      useFactory: async (authConstants: AuthConstants) => ({
+        global: true,
+        secret: authConstants?.jwtSecret,
+        signOptions: { expiresIn: '60s' },
+      }),
     }),
   ],
   controllers: [AuthController],

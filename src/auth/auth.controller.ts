@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Query,
   Request,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -30,6 +31,13 @@ export class AuthController {
     @Body() registerDto: RegisterDto,
   ): Promise<Omit<UserWithRoles, 'password'>> {
     return this.authService.register(registerDto);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('confirm')
+  @Public()
+  async confirm(@Query('code') code: string, @Query('userId') userId: number) {
+    return this.authService.confirm(userId, code);
   }
 
   @Get('profile')
