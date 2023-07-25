@@ -45,7 +45,11 @@ export class UsersService {
         data,
         include: {
           roles: true,
-          emailConfirmation: true,
+          accountVerification: {
+            include: {
+              emailConfirmation: true,
+            },
+          },
         },
       });
       return user;
@@ -75,5 +79,40 @@ export class UsersService {
         id: userId,
       },
     });
+  }
+
+  async verify(userId: number) {
+    const userUpdate = await this.prisma.user.update({
+      where: {
+        id: Number(userId),
+      },
+      data: {
+        accountVerification: {
+          update: {
+            verified: true,
+          },
+        },
+      },
+      include: {
+        accountVerification: {
+          include: {
+            emailConfirmation: true,
+          },
+        },
+      },
+    });
+
+    const emailDelete = await this.prisma.accountVerification.update({
+      where: {
+        id: userUpdate.accountVerification?.id,
+      },
+      data: {
+        emailConfirmation: {
+          delete: true,
+        },
+      },
+    });
+
+    return { userUpdate, emailDelete };
   }
 }

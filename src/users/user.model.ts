@@ -10,7 +10,11 @@ export type UserWithRoles = Prisma.UserGetPayload<typeof userWithRoles>;
 
 const userWithConfirmaiton = Prisma.validator<Prisma.UserArgs>()({
   include: {
-    emailConfirmation: true,
+    accountVerification: {
+      include: {
+        emailConfirmation: true,
+      },
+    },
   },
 });
 

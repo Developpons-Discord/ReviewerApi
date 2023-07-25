@@ -68,9 +68,14 @@ export class AuthService {
           },
         },
       },
-      emailConfirmation: {
+      accountVerification: {
         create: {
-          token: verificationToken,
+          verified: false,
+          emailConfirmation: {
+            create: {
+              token: verificationToken,
+            },
+          },
         },
       },
       email: registerDto.email,
@@ -94,12 +99,17 @@ export class AuthService {
   }
 
   async confirm(userId: number, code: string) {
-    const user = await this.usersService.findOne({
+    // @ts-ignore
+    const user: UserWithConfirmation = await this.usersService.findOne({
       where: {
         id: Number(userId),
       },
       include: {
-        emailConfirmation: true,
+        accountVerification: {
+          include: {
+            emailConfirmation: true,
+          },
+        },
       },
     });
 
@@ -109,25 +119,21 @@ export class AuthService {
       );
     }
 
-    if (!user.emailConfirmation) {
+    if (user.accountVerification?.verified) {
       throw new UnauthorizedException('Vous êtes déjà vérifié !');
     }
 
-    if (!(await bcrypt.compare(code, user.emailConfirmation?.token || ''))) {
+    if (
+      !(await bcrypt.compare(
+        code,
+        user.accountVerification?.emailConfirmation?.token || '',
+      ))
+    ) {
       throw new UnauthorizedException(
         'Le code de confirmation est incorrect !',
       );
     }
 
-    await this.usersService.update({
-      where: {
-        id: Number(userId),
-      },
-      data: {
-        emailConfirmation: {
-          delete: true,
-        },
-      },
-    });
+    await this.usersService.verify(user.id);
   }
 }
