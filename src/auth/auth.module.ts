@@ -24,7 +24,7 @@ import { MailModule } from '../mail/mail.module';
       useFactory: async (authConstants: AuthConstants) => ({
         global: true,
         secret: authConstants?.jwtSecret,
-        signOptions: { expiresIn: '60s' },
+        signOptions: { expiresIn: '1h' },
       }),
     }),
   ],

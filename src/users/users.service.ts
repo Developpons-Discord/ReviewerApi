@@ -50,8 +50,17 @@ export class UsersService {
     });
   }
 
-  async findAll(): Promise<User[]> {
-    return this.prisma.user.findMany();
+  async findAll(): Promise<FullUser[]> {
+    return this.prisma.user.findMany({
+      include: {
+        roles: true,
+        accountVerification: {
+          include: {
+            emailConfirmation: true,
+          },
+        },
+      },
+    });
   }
 
   async create(data: Prisma.UserCreateInput) {

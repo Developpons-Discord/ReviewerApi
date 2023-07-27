@@ -19,7 +19,14 @@ export class AuthService {
     private mailService: MailService,
   ) {}
 
-  async signIn(username: string, pass: string): Promise<any> {
+  async signIn(
+    username: string,
+    pass: string,
+  ): Promise<{
+    access_token: string;
+    expires_in: number;
+    user: FullUser;
+  }> {
     const user = await this.usersService.findByUsername(username);
 
     if (!user) {
@@ -37,10 +44,14 @@ export class AuthService {
     const payload = {
       sub: user.id,
       username: user.username,
-      roles: user.roles,
+      roles: user.roles.map((role) => role.name),
     };
     return {
-      access_token: await this.jwtService.signAsync(payload),
+      access_token: await this.jwtService.signAsync(payload, {
+        expiresIn: '1h',
+      }),
+      expires_in: 3600,
+      user,
     };
   }
 
