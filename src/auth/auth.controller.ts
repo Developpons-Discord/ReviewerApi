@@ -40,6 +40,12 @@ export class AuthController {
     return this.authService.confirm(userId, code);
   }
 
+  @HttpCode(HttpStatus.OK)
+  @Post('resend')
+  async resend(@Request() req: any) {
+    return this.authService.resend(req.userId);
+  }
+
   @Get('profile')
   getProfile(@Request() req: any) {
     return req.user;

@@ -136,4 +136,49 @@ export class AuthService {
 
     await this.usersService.verify(user.id);
   }
+
+  async resend(userId: number) {
+    const user = await this.usersService.findById(Number(userId));
+
+    if (!user) {
+      throw new UnauthorizedException(
+        'Impossible de renvoyer le mail de confirmation.',
+      );
+    }
+
+    if (user.accountVerification?.verified) {
+      throw new UnauthorizedException('Vous êtes déjà vérifié !');
+    }
+
+    const uuid = uuidv4();
+    const token = await bcrypt.hash(uuid, 10);
+
+    try {
+      await this.mailService.sendUserConfirmation(
+        { ...user, password: '' },
+        uuid,
+      );
+
+      await this.usersService.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          accountVerification: {
+            update: {
+              emailConfirmation: {
+                update: {
+                  token,
+                },
+              },
+            },
+          },
+        },
+      });
+    } catch (e) {
+      throw new InternalServerErrorException(
+        "Impossible d'envoyer le mail de confirmation.",
+      );
+    }
+  }
 }
