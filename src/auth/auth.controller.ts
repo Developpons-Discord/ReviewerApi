@@ -7,30 +7,47 @@ import {
   Post,
   Query,
   Request,
+  Res,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Public } from './public.decorator';
 import { RegisterDto } from './auth.dto';
-import { UserWithRoles } from '../users/user.model';
+import { UserDto } from '../users/user.dto';
+import { UsersService } from '../users/users.service';
+import { Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private usersService: UsersService,
+  ) {}
 
   @HttpCode(HttpStatus.OK)
   @Post('login')
   @Public()
-  signIn(@Body() signInDto: Record<string, any>) {
-    return this.authService.signIn(signInDto.username, signInDto.password);
+  async signIn(
+    @Body() signInDto: Record<string, any>,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const signInResult = await this.authService.signIn(
+      signInDto.username,
+      signInDto.password,
+    );
+
+    response.cookie('access_token', signInResult.access_token, {
+      expires: new Date(Date.now() + signInResult.expires_in * 1000),
+    });
+
+    return this.usersService.toDto(signInResult.user);
   }
 
   @HttpCode(HttpStatus.CREATED)
   @Post('register')
   @Public()
-  async register(
-    @Body() registerDto: RegisterDto,
-  ): Promise<Omit<UserWithRoles, 'password'>> {
-    return this.authService.register(registerDto);
+  async register(@Body() registerDto: RegisterDto): Promise<UserDto> {
+    const user = await this.authService.register(registerDto);
+    return this.usersService.toDto(user);
   }
 
   @HttpCode(HttpStatus.OK)
@@ -47,7 +64,8 @@ export class AuthController {
   }
 
   @Get('profile')
-  getProfile(@Request() req: any) {
-    return req.user;
+  async getProfile(@Request() req: any) {
+    const user = await this.usersService.findById(Number(req.userId));
+    return this.usersService.toDto(user!);
   }
 }

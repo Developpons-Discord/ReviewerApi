@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 import { BaseConstants } from '../appconfig/base.constants';
-import { UserWithConfirmation } from '../users/user.model';
 import { User } from '@prisma/client';
 
 @Injectable()

@@ -7,7 +7,7 @@ import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto } from './auth.dto';
-import { UserWithConfirmation, UserWithRoles } from '../users/user.model';
+import { FullUser } from '../users/user.model';
 import { v4 as uuidv4 } from 'uuid';
 import { MailService } from '../mail/mail.service';
 
@@ -19,12 +19,15 @@ export class AuthService {
     private mailService: MailService,
   ) {}
 
-  async signIn(username: string, pass: string): Promise<any> {
-    const user = await this.usersService.findOne({
-      where: {
-        username,
-      },
-    });
+  async signIn(
+    username: string,
+    pass: string,
+  ): Promise<{
+    access_token: string;
+    expires_in: number;
+    user: FullUser;
+  }> {
+    const user = await this.usersService.findByUsername(username);
 
     if (!user) {
       throw new UnauthorizedException(
@@ -41,17 +44,21 @@ export class AuthService {
     const payload = {
       sub: user.id,
       username: user.username,
-      roles: user.roles,
+      roles: user.roles.map((role) => role.name),
     };
     return {
-      access_token: await this.jwtService.signAsync(payload),
+      access_token: await this.jwtService.signAsync(payload, {
+        expiresIn: '1h',
+      }),
+      expires_in: 3600,
+      user,
     };
   }
 
   async register({
     password: clearPassword,
     ...registerDto
-  }: RegisterDto): Promise<Omit<UserWithRoles, 'password'>> {
+  }: RegisterDto): Promise<FullUser> {
     const password = await bcrypt.hash(clearPassword, 10);
     const unencryptedToken = uuidv4();
     const verificationToken = await bcrypt.hash(unencryptedToken, 10);
@@ -99,19 +106,7 @@ export class AuthService {
   }
 
   async confirm(userId: number, code: string) {
-    // @ts-ignore
-    const user: UserWithConfirmation = await this.usersService.findOne({
-      where: {
-        id: Number(userId),
-      },
-      include: {
-        accountVerification: {
-          include: {
-            emailConfirmation: true,
-          },
-        },
-      },
-    });
+    const user = await this.usersService.findById(Number(userId));
 
     if (!user) {
       throw new UnauthorizedException(
