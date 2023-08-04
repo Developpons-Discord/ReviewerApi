@@ -21,7 +21,7 @@ export class UsersService {
   async findById(userId: number): Promise<FullUser | null> {
     return this.prisma.user.findUnique({
       where: {
-        id: userId,
+        id: userId
       },
       include: {
         roles: true,
@@ -29,6 +29,11 @@ export class UsersService {
           include: {
             emailConfirmation: true,
           },
+        },
+        resetPassword: {
+          include: {
+            emailConfirmationResetPassword: true
+          }
         },
       },
     });
@@ -46,6 +51,32 @@ export class UsersService {
             emailConfirmation: true,
           },
         },
+        resetPassword: {
+          include: {
+            emailConfirmationResetPassword: true
+          }
+        },
+      },
+    });
+  }
+
+  async findByEmail(email: string): Promise<FullUser | null> {
+    return this.prisma.user.findUnique({
+      where: {
+        email: email,
+      },
+      include: {
+        roles: true,
+        accountVerification: {
+          include: {
+            emailConfirmation: true,
+          },
+        },
+        resetPassword: {
+          include: {
+            emailConfirmationResetPassword: true
+          }
+        },
       },
     });
   }
@@ -58,6 +89,11 @@ export class UsersService {
           include: {
             emailConfirmation: true,
           },
+        },
+        resetPassword: {
+          include: {
+            emailConfirmationResetPassword: true
+          }
         },
       },
     });
@@ -73,6 +109,11 @@ export class UsersService {
             include: {
               emailConfirmation: true,
             },
+          },
+          resetPassword: {
+            include: {
+              emailConfirmationResetPassword: true
+            }
           },
         },
       });

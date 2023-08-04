@@ -8,6 +8,7 @@ import {
   Query,
   Request,
   Res,
+  Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Public } from './public.decorator';
@@ -67,5 +68,20 @@ export class AuthController {
   async getProfile(@Request() req: any) {
     const user = await this.usersService.findById(Number(req.userId));
     return this.usersService.toDto(user!);
+  }
+
+  @HttpCode(HttpStatus.OK)  // maybe change that
+  @Post('change-password')
+  @Public()
+  async changePassword(@Req() req: any) {
+    const user = await this.usersService.findByEmail(req.body['email'])
+    return this.authService.changePassword(Number(user?.id))
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('change-password-process')
+  @Public()
+  async changePasswordProcess(@Query('code') code: string, @Query('userId') userId: number, @Req() req: any) {
+    return this.authService.doChangePassword(userId, code, req.body['new_password'])
   }
 }

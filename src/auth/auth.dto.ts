@@ -3,6 +3,7 @@ import {
   IsAlphanumeric,
   IsEmail,
   IsNotEmpty,
+  IsNumber,
   IsStrongPassword,
 } from 'class-validator';
 
@@ -55,4 +56,30 @@ export class LoginDto {
     message: 'Votre mot de passe ne doit pas être vide.',
   })
   password: string;
+}
+
+
+export class ChangePasswordDto {
+  @IsAlphanumeric(
+    'fr-FR',
+    {
+      message: 'Votre adresse email doit être valide.',
+    },
+  )
+  username: string;
+
+  @IsStrongPassword(
+    {
+      minLength: 8,
+      minNumbers: 1,
+      minLowercase: 1,
+      minUppercase: 1,
+      minSymbols: 1,
+    },
+    {
+      message:
+        'Votre nouveau mot de passe doit au moins contenir : 8 caractères, 1 chiffre, 1 majuscule et 1 symbole.',
+    },
+  )
+  new_password: string;
 }

@@ -6,7 +6,7 @@ import {
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { RegisterDto } from './auth.dto';
+import { RegisterDto, ChangePasswordDto } from './auth.dto';
 import { FullUser } from '../users/user.model';
 import { v4 as uuidv4 } from 'uuid';
 import { MailService } from '../mail/mail.service';
@@ -84,6 +84,16 @@ export class AuthService {
             },
           },
         },
+      },
+      resetPassword: {
+        create: {
+          password: '',
+          emailConfirmationResetPassword: {
+            create: {
+              token: ''
+            }
+          }
+        }
       },
       email: registerDto.email,
       password: password,
@@ -175,5 +185,68 @@ export class AuthService {
         "Impossible d'envoyer le mail de confirmation.",
       );
     }
+  }
+
+  async changePassword(userId: number) {
+    const unencryptedToken = uuidv4();
+    const verificationToken = await bcrypt.hash(unencryptedToken, 10);
+    const user = await this.usersService.findById(Number(userId))
+
+    this.usersService.update({
+      where: { id: user?.id },
+      data: { 
+        resetPassword: {
+          update: {
+            emailConfirmationResetPassword: {
+              update: {
+                token: verificationToken
+              }
+            }
+          }
+        } 
+      }
+    })
+
+    try {
+      await this.mailService.sendUserChangePasswordConfirmation(
+        {
+          id: user?.id,
+          email: user?.email
+        },
+        unencryptedToken,
+      );
+    } catch (e) {
+      console.error(e);
+      throw new InternalServerErrorException(
+        "Impossible d'envoyer le mail de confirmation de changement de mot de passe.",
+      );
+    }
+  }
+
+  async doChangePassword(userId: number, code: string, password: string) {
+    const user = await this.usersService.findById(Number(userId));
+    const new_password = await bcrypt.hash(password, 10);
+
+    if (!user) {
+      throw new UnauthorizedException(
+        'Votre lien de confirmation ne renvoie à aucun utilisateur connu !',
+      );
+    }
+
+    if (
+      !(await bcrypt.compare(
+        code,
+        user.resetPassword?.emailConfirmationResetPassword?.token || '',
+      ))
+    ) {
+      throw new UnauthorizedException(
+        'Le code de confirmation est incorrect !',
+      );
+    }
+
+    await this.usersService.update({
+      where: { username: user.username },
+      data: { password: new_password }
+    })
   }
 }
