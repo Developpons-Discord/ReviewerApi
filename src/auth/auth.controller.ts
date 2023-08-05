@@ -11,7 +11,11 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Public } from './public.decorator';
-import { RegisterDto } from './auth.dto';
+import {
+  ChangePasswordDto,
+  ChangePasswordProcessDto,
+  RegisterDto,
+} from './auth.dto';
 import { UserDto } from '../users/user.dto';
 import { UsersService } from '../users/users.service';
 import { Response } from 'express';
@@ -67,5 +71,28 @@ export class AuthController {
   async getProfile(@Request() req: any) {
     const user = await this.usersService.findById(Number(req.userId));
     return this.usersService.toDto(user!);
+  }
+
+  @HttpCode(HttpStatus.OK) // maybe change that
+  @Post('change-password')
+  @Public()
+  async changePassword(@Body() changePasswordDto: ChangePasswordDto) {
+    const user = await this.usersService.findByEmail(changePasswordDto.email);
+    return this.authService.changePassword(Number(user?.id));
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('change-password-process')
+  @Public()
+  async changePasswordProcess(
+    @Query('code') code: string,
+    @Query('userId') userId: number,
+    @Body() changePasswordProcessDto: ChangePasswordProcessDto,
+  ) {
+    return this.authService.doChangePassword(
+      userId,
+      code,
+      changePasswordProcessDto.newPassword,
+    );
   }
 }

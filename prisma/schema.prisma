@@ -23,6 +23,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   accountVerification AccountVerification?
+  resetPassword       ResetPassword?
 }
 
 model AccountVerification {
@@ -51,3 +52,20 @@ model Role {
   users User[]
 }
 
+model ResetPassword {
+  id Int @id @default(autoincrement())
+
+  emailConfirmationResetPassword EmailConfirmationResetPassword?
+
+  User   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int  @unique
+}
+
+model EmailConfirmationResetPassword {
+  id Int @id @default(autoincrement())
+
+  resetPassword   ResetPassword? @relation(fields: [resetPasswordId], references: [id])
+  resetPasswordId Int            @unique
+
+  token String @unique
+}

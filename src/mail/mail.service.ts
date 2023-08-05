@@ -24,4 +24,24 @@ export class MailService {
       },
     });
   }
+
+  async sendUserChangePasswordConfirmation(
+    userData: {
+      id: number | undefined;
+      email: string | undefined;
+    },
+    code: string,
+  ) {
+    const baseUrl = this.baseConstants.frontendUrl;
+    await this.mailerService.sendMail({
+      to: userData.email,
+      subject: 'Changement de votre mot de passe',
+      template: './change_password',
+      context: {
+        baseUrl,
+        code,
+        userId: userData.id,
+      },
+    });
+  }
 }

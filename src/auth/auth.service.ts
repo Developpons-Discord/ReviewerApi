@@ -176,4 +176,67 @@ export class AuthService {
       );
     }
   }
+
+  async changePassword(userId: number) {
+    const unencryptedToken = uuidv4();
+    const verificationToken = await bcrypt.hash(unencryptedToken, 10);
+    const user = await this.usersService.findById(Number(userId));
+
+    this.usersService.update({
+      where: { id: user?.id },
+      data: {
+        resetPassword: {
+          create: {
+            emailConfirmationResetPassword: {
+              create: {
+                token: verificationToken,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    try {
+      await this.mailService.sendUserChangePasswordConfirmation(
+        {
+          id: user?.id,
+          email: user?.email,
+        },
+        unencryptedToken,
+      );
+    } catch (e) {
+      console.error(e);
+      throw new InternalServerErrorException(
+        "Impossible d'envoyer le mail de confirmation de changement de mot de passe.",
+      );
+    }
+  }
+
+  async doChangePassword(userId: number, code: string, password: string) {
+    const user = await this.usersService.findById(Number(userId));
+    const newPassword = await bcrypt.hash(password, 10);
+
+    if (!user) {
+      throw new UnauthorizedException(
+        'Votre lien de confirmation ne renvoie à aucun utilisateur connu !',
+      );
+    }
+
+    if (
+      !(await bcrypt.compare(
+        code,
+        user.resetPassword?.emailConfirmationResetPassword?.token || '',
+      ))
+    ) {
+      throw new UnauthorizedException(
+        'Le code de confirmation est incorrect !',
+      );
+    }
+
+    await this.usersService.update({
+      where: { username: user.username },
+      data: { password: newPassword },
+    });
+  }
 }
