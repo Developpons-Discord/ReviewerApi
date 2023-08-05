@@ -38,14 +38,4 @@ export class MailService {
       },
     });
   }
-
-  /*
-  / On génère un code genre un uuid v4,
-  / on envoie un mail avec un lien genre /auth/password-reset?userId=...&code=... et 
-  / on stocke le code en chiffré dans la db. 
-  Quand l'utilisateur clique sur le lien du frontend 
-    ça affiche une page avec deux champs le nv mot de passe, 
-    et la route api de reset prends du json avec le nv mot de passe et en paramètre d'URL le code et le user id pour pouvoir retrouver l'utilisateur et vérifier que c'est bien sa requête 
-
-   */
 }

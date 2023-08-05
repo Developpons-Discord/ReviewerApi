@@ -21,7 +21,7 @@ export class UsersService {
   async findById(userId: number): Promise<FullUser | null> {
     return this.prisma.user.findUnique({
       where: {
-        id: userId
+        id: userId,
       },
       include: {
         roles: true,

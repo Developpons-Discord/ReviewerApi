@@ -6,7 +6,7 @@ import {
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { RegisterDto, ChangePasswordDto } from './auth.dto';
+import { RegisterDto } from './auth.dto';
 import { FullUser } from '../users/user.model';
 import { v4 as uuidv4 } from 'uuid';
 import { MailService } from '../mail/mail.service';
@@ -84,16 +84,6 @@ export class AuthService {
             },
           },
         },
-      },
-      resetPassword: {
-        create: {
-          password: '',
-          emailConfirmationResetPassword: {
-            create: {
-              token: ''
-            }
-          }
-        }
       },
       email: registerDto.email,
       password: password,
@@ -196,9 +186,9 @@ export class AuthService {
       where: { id: user?.id },
       data: { 
         resetPassword: {
-          update: {
+          create: {
             emailConfirmationResetPassword: {
-              update: {
+              create: {
                 token: verificationToken
               }
             }
@@ -225,7 +215,7 @@ export class AuthService {
 
   async doChangePassword(userId: number, code: string, password: string) {
     const user = await this.usersService.findById(Number(userId));
-    const new_password = await bcrypt.hash(password, 10);
+    const newPassword = await bcrypt.hash(password, 10);
 
     if (!user) {
       throw new UnauthorizedException(
@@ -246,7 +236,7 @@ export class AuthService {
 
     await this.usersService.update({
       where: { username: user.username },
-      data: { password: new_password }
+      data: { password: newPassword }
     })
   }
 }

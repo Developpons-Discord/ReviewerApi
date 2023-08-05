@@ -8,11 +8,10 @@ import {
   Query,
   Request,
   Res,
-  Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Public } from './public.decorator';
-import { RegisterDto } from './auth.dto';
+import {ChangePasswordDto, ChangePasswordProcessDto, RegisterDto} from './auth.dto';
 import { UserDto } from '../users/user.dto';
 import { UsersService } from '../users/users.service';
 import { Response } from 'express';
@@ -73,15 +72,19 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)  // maybe change that
   @Post('change-password')
   @Public()
-  async changePassword(@Req() req: any) {
-    const user = await this.usersService.findByEmail(req.body['email'])
+  async changePassword(@Body() changePasswordDto: ChangePasswordDto) {
+    const user = await this.usersService.findByEmail(changePasswordDto.email)
     return this.authService.changePassword(Number(user?.id))
   }
 
   @HttpCode(HttpStatus.OK)
   @Post('change-password-process')
   @Public()
-  async changePasswordProcess(@Query('code') code: string, @Query('userId') userId: number, @Req() req: any) {
-    return this.authService.doChangePassword(userId, code, req.body['new_password'])
+  async changePasswordProcess(
+    @Query('code') code: string,
+    @Query('userId') userId: number,
+    @Body() changePasswordProcessDto: ChangePasswordProcessDto
+  ) {
+    return this.authService.doChangePassword(userId, code, changePasswordProcessDto.newPassword)
   }
 }
