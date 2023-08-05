@@ -25,7 +25,13 @@ export class MailService {
     });
   }
 
-  async sendUserChangePasswordConfirmation(userData: { id: number | undefined, email: string | undefined}, code: string) {
+  async sendUserChangePasswordConfirmation(
+    userData: {
+      id: number | undefined;
+      email: string | undefined;
+    },
+    code: string,
+  ) {
     const baseUrl = this.baseConstants.frontendUrl;
     await this.mailerService.sendMail({
       to: userData.email,

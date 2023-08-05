@@ -10,8 +10,8 @@ const fullUser = Prisma.validator<Prisma.UserArgs>()({
     },
     resetPassword: {
       include: {
-        emailConfirmationResetPassword: true
-      }
+        emailConfirmationResetPassword: true,
+      },
     },
   },
 });

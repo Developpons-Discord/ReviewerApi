@@ -180,28 +180,28 @@ export class AuthService {
   async changePassword(userId: number) {
     const unencryptedToken = uuidv4();
     const verificationToken = await bcrypt.hash(unencryptedToken, 10);
-    const user = await this.usersService.findById(Number(userId))
+    const user = await this.usersService.findById(Number(userId));
 
     this.usersService.update({
       where: { id: user?.id },
-      data: { 
+      data: {
         resetPassword: {
           create: {
             emailConfirmationResetPassword: {
               create: {
-                token: verificationToken
-              }
+                token: verificationToken,
+              },
             },
-          }
-        } 
-      }
-    })
+          },
+        },
+      },
+    });
 
     try {
       await this.mailService.sendUserChangePasswordConfirmation(
         {
           id: user?.id,
-          email: user?.email
+          email: user?.email,
         },
         unencryptedToken,
       );
@@ -236,7 +236,7 @@ export class AuthService {
 
     await this.usersService.update({
       where: { username: user.username },
-      data: { password: newPassword }
-    })
+      data: { password: newPassword },
+    });
   }
 }

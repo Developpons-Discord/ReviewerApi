@@ -57,30 +57,29 @@ export class LoginDto {
   password: string;
 }
 
-
 export class ChangePasswordDto {
   @IsEmail(
-      {},
-      {
-          message: 'Votre adresse email doit être valide.',
-      }
+    {},
+    {
+      message: 'Votre adresse email doit être valide.',
+    },
   )
   email: string;
 }
 
 export class ChangePasswordProcessDto {
-    @IsStrongPassword(
-        {
-            minLength: 8,
-            minNumbers: 1,
-            minLowercase: 1,
-            minUppercase: 1,
-            minSymbols: 1,
-        },
-        {
-            message:
-                'Votre mot de passe doit au moins contenir : 8 caractères, 1 chiffre, 1 majuscule et 1 symbole.',
-        },
-    )
-    newPassword: string;
+  @IsStrongPassword(
+    {
+      minLength: 8,
+      minNumbers: 1,
+      minLowercase: 1,
+      minUppercase: 1,
+      minSymbols: 1,
+    },
+    {
+      message:
+        'Votre mot de passe doit au moins contenir : 8 caractères, 1 chiffre, 1 majuscule et 1 symbole.',
+    },
+  )
+  newPassword: string;
 }

@@ -1,4 +1,4 @@
-import {ConflictException, Injectable} from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { PrismaService } from '../prisma.service';
 import { FullUser } from './user.model';
@@ -32,8 +32,8 @@ export class UsersService {
         },
         resetPassword: {
           include: {
-            emailConfirmationResetPassword: true
-          }
+            emailConfirmationResetPassword: true,
+          },
         },
       },
     });
@@ -53,8 +53,8 @@ export class UsersService {
         },
         resetPassword: {
           include: {
-            emailConfirmationResetPassword: true
-          }
+            emailConfirmationResetPassword: true,
+          },
         },
       },
     });
@@ -74,8 +74,8 @@ export class UsersService {
         },
         resetPassword: {
           include: {
-            emailConfirmationResetPassword: true
-          }
+            emailConfirmationResetPassword: true,
+          },
         },
       },
     });
@@ -92,8 +92,8 @@ export class UsersService {
         },
         resetPassword: {
           include: {
-            emailConfirmationResetPassword: true
-          }
+            emailConfirmationResetPassword: true,
+          },
         },
       },
     });
@@ -112,8 +112,8 @@ export class UsersService {
           },
           resetPassword: {
             include: {
-              emailConfirmationResetPassword: true
-            }
+              emailConfirmationResetPassword: true,
+            },
           },
         },
       });
