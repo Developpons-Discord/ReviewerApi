@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {ConflictException, Injectable} from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { PrismaService } from '../prisma.service';
 import { FullUser } from './user.model';
@@ -194,7 +194,6 @@ export class UsersService {
           : false,
     };
     ignoredFields.forEach((field) => delete userDto[field]);
-
     return userDto;
   }
 }
