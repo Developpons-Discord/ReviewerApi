@@ -191,7 +191,7 @@ export class AuthService {
               create: {
                 token: verificationToken
               }
-            }
+            },
           }
         } 
       }

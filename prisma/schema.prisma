@@ -23,7 +23,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   accountVerification AccountVerification?
-  resetPassword ResetPassword?
+  resetPassword       ResetPassword?
 }
 
 model AccountVerification {
@@ -53,8 +53,7 @@ model Role {
 }
 
 model ResetPassword {
-  id       Int     @id @default(autoincrement())
-  password String
+  id Int @id @default(autoincrement())
 
   emailConfirmationResetPassword EmailConfirmationResetPassword?
 
@@ -70,4 +69,3 @@ model EmailConfirmationResetPassword {
 
   token String @unique
 }
-
