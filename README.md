@@ -6,7 +6,7 @@
   </a>
 </p>
 
-> L'API du projet &#34;Reviewer&#34; du serveur discord &#34;Développons&#34; qui permettra à terme d'envoyer de manière concise une critique du code d'un utilisateur sous forme de rapport html consultable
+> L'API du projet "Reviewer" du serveur discord [Développons](https://discord.gg/ghDacp5jEr) qui permettra à terme d'envoyer de manière concise une critique du code d'un utilisateur sous forme de rapport html consultable
 
 ## Install
 
