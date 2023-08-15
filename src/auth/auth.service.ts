@@ -7,7 +7,7 @@ import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto } from './auth.dto';
-import { UserWithConfirmation, UserWithRoles } from '../users/user.model';
+import { FullUser } from '../users/user.model';
 import { v4 as uuidv4 } from 'uuid';
 import { MailService } from '../mail/mail.service';
 
@@ -19,12 +19,15 @@ export class AuthService {
     private mailService: MailService,
   ) {}
 
-  async signIn(username: string, pass: string): Promise<any> {
-    const user = await this.usersService.findOne({
-      where: {
-        username,
-      },
-    });
+  async signIn(
+    username: string,
+    pass: string,
+  ): Promise<{
+    access_token: string;
+    expires_in: number;
+    user: FullUser;
+  }> {
+    const user = await this.usersService.findByUsername(username);
 
     if (!user) {
       throw new UnauthorizedException(
@@ -41,17 +44,21 @@ export class AuthService {
     const payload = {
       sub: user.id,
       username: user.username,
-      roles: user.roles,
+      roles: user.roles.map((role) => role.name),
     };
     return {
-      access_token: await this.jwtService.signAsync(payload),
+      access_token: await this.jwtService.signAsync(payload, {
+        expiresIn: '1h',
+      }),
+      expires_in: 3600,
+      user,
     };
   }
 
   async register({
     password: clearPassword,
     ...registerDto
-  }: RegisterDto): Promise<Omit<UserWithRoles, 'password'>> {
+  }: RegisterDto): Promise<FullUser> {
     const password = await bcrypt.hash(clearPassword, 10);
     const unencryptedToken = uuidv4();
     const verificationToken = await bcrypt.hash(unencryptedToken, 10);
@@ -68,9 +75,14 @@ export class AuthService {
           },
         },
       },
-      emailConfirmation: {
+      accountVerification: {
         create: {
-          token: verificationToken,
+          verified: false,
+          emailConfirmation: {
+            create: {
+              token: verificationToken,
+            },
+          },
         },
       },
       email: registerDto.email,
@@ -94,14 +106,7 @@ export class AuthService {
   }
 
   async confirm(userId: number, code: string) {
-    const user = await this.usersService.findOne({
-      where: {
-        id: Number(userId),
-      },
-      include: {
-        emailConfirmation: true,
-      },
-    });
+    const user = await this.usersService.findById(Number(userId));
 
     if (!user) {
       throw new UnauthorizedException(
@@ -109,22 +114,122 @@ export class AuthService {
       );
     }
 
-    if (!user.emailConfirmation) {
+    if (user.accountVerification?.verified) {
       throw new UnauthorizedException('Vous êtes déjà vérifié !');
     }
 
-    if (!(await bcrypt.compare(code, user.emailConfirmation?.token || ''))) {
+    if (
+      !(await bcrypt.compare(
+        code,
+        user.accountVerification?.emailConfirmation?.token || '',
+      ))
+    ) {
+      throw new UnauthorizedException(
+        'Le code de confirmation est incorrect !',
+      );
+    }
+
+    await this.usersService.verify(user.id);
+  }
+
+  async resend(userId: number) {
+    const user = await this.usersService.findById(Number(userId));
+
+    if (!user) {
+      throw new UnauthorizedException(
+        'Impossible de renvoyer le mail de confirmation.',
+      );
+    }
+
+    if (user.accountVerification?.verified) {
+      throw new UnauthorizedException('Vous êtes déjà vérifié !');
+    }
+
+    const uuid = uuidv4();
+    const token = await bcrypt.hash(uuid, 10);
+
+    try {
+      await this.mailService.sendUserConfirmation(
+        { ...user, password: '' },
+        uuid,
+      );
+
+      await this.usersService.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          accountVerification: {
+            update: {
+              emailConfirmation: {
+                update: {
+                  token,
+                },
+              },
+            },
+          },
+        },
+      });
+    } catch (e) {
+      throw new InternalServerErrorException(
+        "Impossible d'envoyer le mail de confirmation.",
+      );
+    }
+  }
+
+  async changePassword(userId: number) {
+    const unencryptedToken = uuidv4();
+    const verificationToken = await bcrypt.hash(unencryptedToken, 10);
+    const user = await this.usersService.findById(Number(userId));
+
+    await this.usersService.update({
+      where: { id: user?.id },
+      data: {
+        resetPassword: {
+          create: {
+            token: verificationToken,
+          },
+        },
+      },
+    });
+
+    try {
+      await this.mailService.sendUserChangePasswordConfirmation(
+        {
+          id: user?.id,
+          email: user?.email,
+        },
+        unencryptedToken,
+      );
+    } catch (e) {
+      console.error(e);
+      throw new InternalServerErrorException(
+        "Impossible d'envoyer le mail de confirmation de changement de mot de passe.",
+      );
+    }
+  }
+
+  async doChangePassword(userId: number, code: string, password: string) {
+    const user = await this.usersService.findById(Number(userId));
+    const newPassword = await bcrypt.hash(password, 10);
+
+    if (!user) {
+      throw new UnauthorizedException(
+        'Votre lien de confirmation ne renvoie à aucun utilisateur connu !',
+      );
+    }
+
+    if (!(await bcrypt.compare(code, user.resetPassword?.token || ''))) {
       throw new UnauthorizedException(
         'Le code de confirmation est incorrect !',
       );
     }
 
     await this.usersService.update({
-      where: {
-        id: Number(userId),
-      },
+      where: { username: user.username },
       data: {
-        emailConfirmation: {
+        password: newPassword,
+        resetPassword: {
           delete: true,
         },
       },

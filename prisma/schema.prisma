@@ -17,19 +17,30 @@ model User {
   username String @unique
   password String
 
-  roles   Role[]
+  roles Role[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  accountVerification AccountVerification?
+  resetPassword       ResetPassword?
+}
+
+model AccountVerification {
+  id       Int     @id @default(autoincrement())
+  verified Boolean @default(false)
+
   emailConfirmation EmailConfirmation?
+
+  User   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int  @unique
 }
 
 model EmailConfirmation {
   id Int @id @default(autoincrement())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId Int @unique
+  accountVerification   AccountVerification? @relation(fields: [accountVerificationId], references: [id])
+  accountVerificationId Int                  @unique
 
   token String @unique
 }
@@ -39,4 +50,13 @@ model Role {
   name String @unique
 
   users User[]
+}
+
+model ResetPassword {
+  id Int @id @default(autoincrement())
+
+  User   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int  @unique
+
+  token String @unique
 }

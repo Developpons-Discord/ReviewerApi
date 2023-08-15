@@ -1,19 +1,15 @@
 import { Prisma } from '@prisma/client';
 
-const userWithRoles = Prisma.validator<Prisma.UserArgs>()({
+const fullUser = Prisma.validator<Prisma.UserArgs>()({
   include: {
     roles: true,
+    accountVerification: {
+      include: {
+        emailConfirmation: true,
+      },
+    },
+    resetPassword: true,
   },
 });
 
-export type UserWithRoles = Prisma.UserGetPayload<typeof userWithRoles>;
-
-const userWithConfirmaiton = Prisma.validator<Prisma.UserArgs>()({
-  include: {
-    emailConfirmation: true,
-  },
-});
-
-export type UserWithConfirmation = Prisma.UserGetPayload<
-  typeof userWithConfirmaiton
->;
+export type FullUser = Prisma.UserGetPayload<typeof fullUser>;

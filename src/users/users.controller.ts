@@ -8,7 +8,10 @@ export class UsersController {
 
   @Get('all')
   @Roles('admin')
-  getAllUsers() {
-    return this.usersService.findAll();
+  async getAllUsers() {
+    const users = await this.usersService.findAll();
+    return users.map((user) =>
+      this.usersService.toDto(user, ['email', 'createdAt', 'updatedAt']),
+    );
   }
 }

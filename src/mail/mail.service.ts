@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 import { BaseConstants } from '../appconfig/base.constants';
-import { UserWithConfirmation } from '../users/user.model';
 import { User } from '@prisma/client';
 
 @Injectable()
@@ -22,6 +21,26 @@ export class MailService {
         baseUrl,
         code,
         userId: user.id,
+      },
+    });
+  }
+
+  async sendUserChangePasswordConfirmation(
+    userData: {
+      id: number | undefined;
+      email: string | undefined;
+    },
+    code: string,
+  ) {
+    const baseUrl = this.baseConstants.frontendUrl;
+    await this.mailerService.sendMail({
+      to: userData.email,
+      subject: 'Changement de votre mot de passe',
+      template: './change_password',
+      context: {
+        baseUrl,
+        code,
+        userId: userData.id,
       },
     });
   }
