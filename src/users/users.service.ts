@@ -30,11 +30,7 @@ export class UsersService {
             emailConfirmation: true,
           },
         },
-        resetPassword: {
-          include: {
-            emailConfirmationResetPassword: true,
-          },
-        },
+        resetPassword: true,
       },
     });
   }
@@ -51,11 +47,7 @@ export class UsersService {
             emailConfirmation: true,
           },
         },
-        resetPassword: {
-          include: {
-            emailConfirmationResetPassword: true,
-          },
-        },
+        resetPassword: true,
       },
     });
   }
@@ -72,11 +64,7 @@ export class UsersService {
             emailConfirmation: true,
           },
         },
-        resetPassword: {
-          include: {
-            emailConfirmationResetPassword: true,
-          },
-        },
+        resetPassword: true,
       },
     });
   }
@@ -90,11 +78,7 @@ export class UsersService {
             emailConfirmation: true,
           },
         },
-        resetPassword: {
-          include: {
-            emailConfirmationResetPassword: true,
-          },
-        },
+        resetPassword: true,
       },
     });
   }
@@ -110,11 +94,7 @@ export class UsersService {
               emailConfirmation: true,
             },
           },
-          resetPassword: {
-            include: {
-              emailConfirmationResetPassword: true,
-            },
-          },
+          resetPassword: true,
         },
       });
     } catch {

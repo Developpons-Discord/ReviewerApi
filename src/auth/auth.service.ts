@@ -182,16 +182,12 @@ export class AuthService {
     const verificationToken = await bcrypt.hash(unencryptedToken, 10);
     const user = await this.usersService.findById(Number(userId));
 
-    this.usersService.update({
+    await this.usersService.update({
       where: { id: user?.id },
       data: {
         resetPassword: {
           create: {
-            emailConfirmationResetPassword: {
-              create: {
-                token: verificationToken,
-              },
-            },
+            token: verificationToken,
           },
         },
       },
@@ -223,12 +219,7 @@ export class AuthService {
       );
     }
 
-    if (
-      !(await bcrypt.compare(
-        code,
-        user.resetPassword?.emailConfirmationResetPassword?.token || '',
-      ))
-    ) {
+    if (!(await bcrypt.compare(code, user.resetPassword?.token || ''))) {
       throw new UnauthorizedException(
         'Le code de confirmation est incorrect !',
       );
@@ -236,7 +227,12 @@ export class AuthService {
 
     await this.usersService.update({
       where: { username: user.username },
-      data: { password: newPassword },
+      data: {
+        password: newPassword,
+        resetPassword: {
+          delete: true,
+        },
+      },
     });
   }
 }
